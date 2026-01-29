@@ -1,23 +1,54 @@
 package com.johncnstn.springai.controller;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 public class ChatController {
 
     private final ChatClient chatClient;
+    private final ChatClient factualChat;
 
-    public ChatController(ChatClient.Builder chatClient) {
-        this.chatClient = chatClient.build();
+    public ChatController(@Qualifier("chat") ChatClient chatClient,
+                          @Qualifier("factualChat") ChatClient factualChat) {
+        this.chatClient = chatClient;
+        this.factualChat = factualChat;
     }
 
     @PostMapping()
-    public String joke(@RequestBody String message) {
+    public String chat(@RequestBody String message) {
         return chatClient.prompt()
                 .user(message)
+                .call()
+                .content();
+    }
+
+    @GetMapping()
+    public String classifyTweets() {
+        var system = new SystemMessage("You are an assistant that classifies tweent sentiment as Positive, Negative, or Natural.");
+        var user = new UserMessage("""
+                Tweet: "I love sun!"
+                Sentiment: Positive
+                
+                Tweet: "I lost money."
+                Sentiment: Negative
+                
+                Tweet: "Just had lunch."
+                Sentiment: Netural 
+                
+                Tweet: "Excited for my trip!!"
+                Sentiment:
+                """);
+        return factualChat.prompt(new Prompt(List.of(system, user)))
                 .call()
                 .content();
     }
