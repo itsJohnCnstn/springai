@@ -1,5 +1,6 @@
 package com.johncnstn.springai.controller;
 
+import com.johncnstn.springai.tool.DateTimeTools;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -24,6 +25,14 @@ public class ChatController {
         this.factualChat = factualChat;
     }
 
+    /**
+     * Processes a user message using the chat client.
+     *
+     * <p>Example usage: {@code http localhost:8080 message="What day is tomorrow?"}
+     *
+     * @param message the user message to process
+     * @return the AI-generated response content
+     */
     @PostMapping()
     public String chat(@RequestBody String message) {
         return chatClient.prompt()
@@ -31,6 +40,24 @@ public class ChatController {
                 .call()
                 .content();
     }
+
+    /**
+     * Processes a user message using the chat client with date/time tool support.
+     *
+     * <p>Example usage: {@code http localhost:8080/tools message="What day is tomorrow?"}
+     *
+     * @param message the user message to process
+     * @return the AI-generated response content
+     */
+    @PostMapping("/tools")
+    public String dateTimeTool(@RequestBody String message) {
+        return chatClient.prompt()
+                .user(message)
+                .tools(new DateTimeTools())
+                .call()
+                .content();
+    }
+
 
     @GetMapping()
     public String classifyTweets() {
